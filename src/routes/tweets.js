@@ -42,6 +42,7 @@ module.exports = (app, io) => {
         stream();
     });
 
+
     /**
      * Pauses the twitter stream.
      */
@@ -74,6 +75,15 @@ module.exports = (app, io) => {
         if (msg.text.includes('RT')) {
             return;
         }
+        console.log("Send message:", msg);
+
         socketConnection.emit("tweets", msg);
     }
+
+
+    /**test start**/
+    app.get('/test', (req, res) => {
+        console.log("Starting the twitter");
+        stream();
+    });
 };
