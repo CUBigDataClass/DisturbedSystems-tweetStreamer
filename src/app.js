@@ -16,7 +16,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 require('./routes/tweets.js')(app, io);
 
-console.log("sasasas", port);
 server.listen(port, () => {
     console.log('server is up');
 });
+
+console.log("Running on the port:", port);

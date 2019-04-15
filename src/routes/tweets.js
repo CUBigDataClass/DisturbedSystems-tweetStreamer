@@ -2,10 +2,10 @@ const Twitter = require('twitter');
 
 module.exports = (app, io) => {
     let twitter = new Twitter({
-        consumer_key: process.env.TWITTER_CONSUMER_KEY,
+        consumer_key:process.env.TWITTER_CONSUMER_KEY,
         consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-        access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-        access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+        access_token_key:  process.env.TWITTER_ACCESS_TOKEN_KEY,
+        access_token_secret:  process.env.TWITTER_ACCESS_TOKEN_SECRET
     });
 
     let socketConnection;
@@ -21,10 +21,12 @@ module.exports = (app, io) => {
         console.log('Resuming for ' + app.locals.searchTerm);
         twitter.stream('statuses/filter', { track: app.locals.searchTerm }, (stream) => {
             stream.on('data', (tweet) => {
+
                 sendMessage(tweet);
             });
 
             stream.on('error', (error) => {
+
                 console.log(error);
             });
 
@@ -32,13 +34,19 @@ module.exports = (app, io) => {
         });
     }
 
+    app.use(function(req, res, next) {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        next();
+    });
+
     /**
      * Sets search term for twitter stream.
      */
     app.post('/setSearchTerm', (req, res) => {
         let term = req.body.term;
         app.locals.searchTerm = term;
-        twitterStream.destroy();
+        twitterStream? twitterStream.destroy():'';
         stream();
     });
 
@@ -61,11 +69,13 @@ module.exports = (app, io) => {
 
     //Establishes socket connection.
     io.on("connection", socket => {
+        console.log("Connection request arrived and the Client is connected")
         socketConnection = socket;
-        stream();
+        // stream();
         socket.on("connection", () => console.log("Client connected"));
         socket.on("disconnect", () => console.log("Client disconnected"));
     });
+
 
     /**
      * Emits data from stream.
@@ -82,8 +92,12 @@ module.exports = (app, io) => {
 
 
     /**test start**/
-    app.get('/test', (req, res) => {
+    app.get('/start', (req, res) => {
         console.log("Starting the twitter");
         stream();
+    });
+    app.get('/stop', (req, res) => {
+        console.log("stopping the twitter");
+        twitterStream.destroy();
     });
 };
