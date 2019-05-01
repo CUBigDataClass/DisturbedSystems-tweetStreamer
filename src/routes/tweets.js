@@ -2,10 +2,10 @@ const Twitter = require('twitter');
 
 module.exports = (app, io) => {
     let twitter = new Twitter({
-        consumer_key:process.env.TWITTER_CONSUMER_KEY,
+        consumer_key: process.env.TWITTER_CONSUMER_KEY,
         consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-        access_token_key:  process.env.TWITTER_ACCESS_TOKEN_KEY,
-        access_token_secret:  process.env.TWITTER_ACCESS_TOKEN_SECRET
+        access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+        access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
     });
 
     let socketConnection;
@@ -19,7 +19,7 @@ module.exports = (app, io) => {
      */
     const stream = () => {
         console.log('Resuming for ' + app.locals.searchTerm);
-        twitter.stream('statuses/filter', { track: app.locals.searchTerm }, (stream) => {
+        twitter.stream('statuses/filter', {track: app.locals.searchTerm}, (stream) => {
             stream.on('data', (tweet) => {
 
                 sendMessage(tweet);
@@ -34,7 +34,7 @@ module.exports = (app, io) => {
         });
     }
 
-    app.use(function(req, res, next) {
+    app.use(function (req, res, next) {
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
         next();
@@ -46,9 +46,12 @@ module.exports = (app, io) => {
     app.post('/setSearchTerm', (req, res) => {
         let term = req.body.term;
         app.locals.searchTerm = term;
-        if(twitterStream) {
-            twitterStream.destroy()
+        if (twitterStream) {
+
+            twitterStream.destroy();
+            console.log("Destroyed the stream  because new stream has been requested...")
         }
+
         stream();
     });
 
@@ -75,7 +78,15 @@ module.exports = (app, io) => {
         socketConnection = socket;
         // stream();
         socket.on("connection", () => console.log("Client connected"));
-        socket.on("disconnect", () => console.log("Client disconnected"));
+        socket.on("disconnect", function () {
+            console.log("Client disconnected, Stopping the stream as well");
+            if (twitterStream) {
+
+                twitterStream.destroy();
+                console.log("Destroyed the stream  because the client disconnected.")
+            }
+
+        });
     });
 
 
